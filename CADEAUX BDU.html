@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Jeu Cadeaux</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #83a4d4, #b6fbff);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+
+  .container {
+    background: #fff;
+    padding: 30px 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    text-align: center;
+    width: 350px;
+  }
+
+  h1 {
+    color: #333;
+    margin-bottom: 20px;
+  }
+
+  label {
+    font-weight: bold;
+  }
+
+  input[type="number"] {
+    width: 100px;
+    padding: 8px;
+    margin: 10px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    text-align: center;
+    font-size: 16px;
+  }
+
+  button {
+    padding: 10px 20px;
+    border: none;
+    background: #4caf50;
+    color: #fff;
+    font-size: 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  button:hover {
+    background: #45a049;
+  }
+
+  #message {
+    margin-top: 20px;
+    font-weight: bold;
+    font-size: 18px;
+    color: #222;
+  }
+
+  /* On cache la zone des stocks */
+  #stocks {
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>CADEAUX BDU-CI</h1>
+
+  <label for="numero">Entrez votre numéro tiré (1 à 1000) :</label><br>
+  <input type="number" id="numero" min="1" max="1000">
+  <button onclick="tirerNumero()">Tirer</button>
+
+  <div id="message"></div>
+
+  <!-- Stocks cachés pour la logique interne -->
+  <ul id="stocks">
+    <li>Casquettes : <span id="casquettes"></span></li>
+    <li>Tee-shirts : <span id="teeshirt"></span></li>
+    <li>Ventilateurs : <span id="ventilo"></span></li>
+    <li>Porte-clés : <span id="portcle"></span></li>
+    <li>Supports : <span id="supports"></span></li>
+    <li>Bracelets : <span id="bracelet"></span></li>
+    <li>Stylos : <span id="stylo"></span></li>
+  </ul>
+</div>
+
+<script>
+const maxNum = 1000;
+
+// Stocks initiaux (internes)
+let rest = {
+  casquettes: 105,
+  teeshirt: 105,
+  ventilo: 100,
+  portcle: 150,
+  supports: 150,
+  bracelet: 90,
+  stylo: 50
+};
+
+let utilise = Array(maxNum + 1).fill(false);
+
+function stocksEpuises() {
+  return Object.values(rest).every(val => val === 0);
+}
+
+function redistribuerLots() {
+  let total = Object.values(rest).reduce((a,b) => a+b, 0);
+  if (total === 0) return;
+  let egalite = Math.floor(total / 7);
+  for (let key in rest) rest[key] = egalite;
+}
+
+function tirerNumero() {
+  const nbr = parseInt(document.getElementById('numero').value);
+  const message = document.getElementById('message');
+
+  if (isNaN(nbr) || nbr < 1 || nbr > maxNum) {
+    message.textContent = 'Numéro incorrect. Entrez un nombre entre 1 et 1000.';
+    message.style.color = 'red';
+    return;
+  }
+
+  if (utilise[nbr]) {
+    message.textContent = 'Ce numéro a déjà été utilisé. Choisissez un autre.';
+    message.style.color = 'red';
+    return;
+  }
+
+  utilise[nbr] = true;
+  const dernierChiffre = nbr % 10;
+  let gagne = 'Pas de chance !';
+  message.style.color = '#222';
+
+  switch(dernierChiffre) {
+    case 0:
+    case 2:
+      if (rest.supports > 0) { rest.supports--; gagne = 'Vous gagnez un support !'; message.style.color = 'green'; }
+      break;
+    case 1:
+      if (rest.casquettes > 0) { rest.casquettes--; gagne = 'Vous gagnez une casquette !'; message.style.color = 'green'; }
+      break;
+    case 3:
+      if (rest.ventilo > 0) { rest.ventilo--; gagne = 'Vous gagnez un ventilateur !'; message.style.color = 'green'; }
+      break;
+    case 5:
+      if (rest.portcle > 0) { rest.portcle--; gagne = 'Vous gagnez un porte-clé !'; message.style.color = 'green'; }
+      break;
+    case 7:
+      if (rest.bracelet > 0) { rest.bracelet--; gagne = 'Vous gagnez un bracelet !'; message.style.color = 'green'; }
+      break;
+    case 9:
+      if (Math.random() < 0.5 && rest.stylo > 0) { rest.stylo--; gagne = 'Vous gagnez un stylo !'; message.style.color = 'green'; }
+      else if (rest.teeshirt > 0) { rest.teeshirt--; gagne = 'Vous gagnez un tee-shirt !'; message.style.color = 'green'; }
+      break;
+  }
+
+  if (stocksEpuises()) {
+    gagne += ' Tous les lots sont épuisés. Redistribution en cours...';
+    redistribuerLots();
+  }
+
+  message.textContent = gagne;
+}
+</script>
+
+</body>
+</html>
